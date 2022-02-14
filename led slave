@@ -1,0 +1,124 @@
+#include "pitches.h"
+#include <Wire.h>
+#include "SSD1306Ascii.h"
+#include "SSD1306AsciiWire.h"
+#define SR04_I2CADDR 0x57
+#define OLED_I2CAADR 0x3C
+#define PEXP_I2CADDR 0x23
+
+#define I2C_SDA 19
+#define I2C_SCL 18
+#define LED 2
+#define IR_RECV 4
+#define NEO_PIXEL 5
+#define LED_COUNT 3
+
+SSD1306AsciiWire oled;
+
+byte attinySlaveArray[3];
+
+int setBoardLED(uint8_t outputState) {
+    attinySlaveArray[0] = 0x02;  // Command 0x02 Turn on/off the LED PA1
+    attinySlaveArray[1] = outputState? 0x01:0x00;  // Param1 - LED State
+    attinySlaveArray[2] = 0x00;  // Param2 - Dummy in this case
+    delay(10);
+    Wire.beginTransmission(I2CADDR);
+    Wire.write(attinySlaveArray, 3); // Sends 3 bytes i2c to Co-processor.
+    if (Wire.endTransmission () == 0) { // Receive 0 = success (ACK response) 
+        Serial.println("i2c Write to 0x12 Sucessfull");
+        return 0;
+    }
+    else {
+        Serial.println("i2c Write Failed");
+        return 1;
+    }
+}
+
+
+int setFreq(unsigned int frequency) {
+    attinySlaveArray[0] = 0x10;  // Command 0x10
+    attinySlaveArray[1] = (frequency & 0xff);        // Param1 - freq (L)
+    attinySlaveArray[2] = (frequency >> 8) & 0xff;   // Param2 - freq (H)
+    delay(10);
+    Wire.beginTransmission(I2CADDR);
+    Wire.write(attinySlaveArray, 3); // Sends 3 bytes i2c to Co-processor.
+    if (Wire.endTransmission () == 0) { // Receive 0 = success (ACK response) 
+        Serial.println("i2c Write to 0x12 Sucessfull");
+        return 0;
+    }
+    else {
+        Serial.println("i2c Write Failed");
+        return 1;
+    }
+}
+
+
+int setToneDuration(unsigned int duration) {
+    attinySlaveArray[0] = 0x11;  // Command 0x11
+    attinySlaveArray[1] = (duration & 0xff);        // Param1 - duration (L)
+    attinySlaveArray[2] = (duration >> 8) & 0xff;   // Param2 - duration (H)
+    delay(10);
+    Wire.beginTransmission(I2CADDR);
+    Wire.write(attinySlaveArray, 3); // Sends 3 bytes i2c to Co-processor.
+    if (Wire.endTransmission () == 0) { // Receive 0 = success (ACK response) 
+        Serial.println("i2c Write to 0x12 Sucessfull");
+        return 0;
+    }
+    else {
+        Serial.println("i2c Write Failed");
+        return 1;
+    }
+}
+
+
+void playNote(unsigned int frequency, unsigned int duration) {
+  setFreq(frequency);
+  setToneDuration(duration * 0.9);
+  delay(duration); 
+}
+void setup() {
+
+    Wire.begin(I2C_SDA, I2C_SCL);    
+    oled.begin(&Adafruit128x64, OLED_I2CAADR); 
+    
+    pinMode(LED, OUTPUT);
+    delay(2000);
+    
+    Serial.begin(115200);
+    
+    attinySlaveArray[0] = 2;
+    attinySlaveArray[1] = 1;
+    attinySlaveArray[2] = 1;
+    
+    oled.setFont(Adafruit5x7);
+    oled.clear();
+    oled.println("CoreBoard Co-Processor");
+
+
+    playNote(NOTE_F4, 500);
+    playNote(NOTE_F4, 500);
+    playNote(NOTE_F4, 500);
+    playNote(NOTE_C4, 500);
+    playNote(NOTE_D4, 500);
+    playNote(NOTE_D4, 500);
+    playNote(NOTE_C4, 1000);
+    playNote(NOTE_A4, 500);
+    playNote(NOTE_A4, 500);
+    playNote(NOTE_G4, 500);
+    playNote(NOTE_G4, 500);
+    playNote(NOTE_F4, 1500);
+    
+}
+void loop() {
+  
+    oled.clear();
+    oled.println("-LED On (1s)-");
+    setBoardLED(HIGH);
+    delay(1000);
+
+    oled.clear();
+    oled.println("-LED Off (1s)-");
+    setBoardLED(LOW);
+    delay(1000);
+
+}
