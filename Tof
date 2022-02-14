@@ -103,16 +103,16 @@ void loop() {
       Serial.println("signal/noise error");
     }
     else if (status == VL6180X_ERROR_RAWUFLOW) {
-      Serial.println("Raw reading underflow");
+      Serial.println("raw reading underflow");
     }
     else if (status == VL6180X_ERROR_RAWOFLOW) {
-      Serial.println("Raw reading overflow");
+      Serial.println("raw reading overflow");
     }
     else if (status == VL6180X_ERROR_RANGEUFLOW) {
-      Serial.println("Range reading underflow");
+      Serial.println("range reading underflow");
     }
     else if (status == VL6180X_ERROR_RANGEOFLOW) {
-      Serial.println("Range reading overflow");
+      Serial.println("range reading overflow");
     }
     
     delay(50);
