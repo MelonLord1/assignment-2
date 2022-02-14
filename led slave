@@ -1,0 +1,87 @@
+#include <Wire.h>
+#define I2CADDR 0x13
+#define LED 3
+#define SPK_OUT 8
+
+volatile char rcv_buf[256];
+volatile int rcv_len = 0;
+uint8_t led_state = 0;
+
+int frequency = 440;
+
+void setup() {
+    pinMode(LED, OUTPUT);
+    digitalWrite(LED, LOW);
+    
+    pinMode(SPK_OUT, OUTPUT);
+    noTone(SPK_OUT);
+    
+    tone(SPK_OUT, 659, 90); 
+    delay(100);
+    tone(SPK_OUT, 587, 90); 
+    delay(100);
+    tone(SPK_OUT, 370, 90); 
+    delay(100);
+    noTone(SPK_OUT);
+    
+    Wire.begin(I2CADDR);            
+    Wire.onReceive(receiveEvent);   
+    Wire.onRequest(requestEvent);   
+}
+
+void requestEvent() { 
+    Wire.write(led_state);
+}
+
+void receiveEvent(int howMany) {
+    int i = 0;
+    int p;
+    int busy = rcv_len;
+    
+    while (0 < Wire.available()) { 
+    if (busy == 0) {
+            rcv_buf[i++] = Wire.read(); r
+        } else {
+            int a = Wire.read(); // dummy read
+        }
+    }
+    if (i == 3) {
+        rcv_len = i;
+    }
+}
+
+
+void loop() {
+    if( rcv_len > 0 ) {
+    unsigned int param = ((rcv_buf[2]&0xff)<<8)+(rcv_buf[1]&0xff);  
+    
+    
+    switch(rcv_buf[0]) {
+        case 2: 
+            if(param & 0x1) {
+                digitalWrite(LED, HIGH);
+                led_state = HIGH;
+            }
+            else {
+                digitalWrite(LED, LOW);
+                led_state = LOW;
+            }
+            break;
+        
+        
+        case 0x10: 
+            if ((param > 30) && (param < 4979))
+                frequency = param;
+            break;
+            
+        case 0x11: 
+            if ((param > 0) && (param < 10000)) {
+                noTone(SPK_OUT);
+                tone(SPK_OUT, frequency, param);
+            }   
+            break;
+        
+        }        
+        rcv_len = 0;
+    }
+}
